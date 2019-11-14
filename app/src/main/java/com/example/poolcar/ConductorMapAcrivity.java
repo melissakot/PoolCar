@@ -84,12 +84,11 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
         mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
         mMap.animateCamera(CameraUpdateFactory.zoomTo(11));
 
-
-        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+       /* String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("conductoresDisponibles");
 
         GeoFire geoFire = new GeoFire(ref);
-        geoFire.setLocation(userId, new GeoLocation(location.getLatitude(), location.getLongitude()));
+        geoFire.setLocation(userId, new GeoLocation(location.getLatitude(), location.getLongitude()));*/
     }
 
     @Override
@@ -121,11 +120,11 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
     protected void onStop() {
         super.onStop();
 
-        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        /*String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("conductoresDisponibles");
 
         GeoFire geoFire = new GeoFire(ref);
-        geoFire.removeLocation(userId);
+        geoFire.removeLocation(userId);*/
 
     }
 }
