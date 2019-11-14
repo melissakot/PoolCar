@@ -30,6 +30,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-core:17.0.0'
     implementation 'com.google.firebase:firebase-database:18.0.0'
     implementation 'com.google.firebase:firebase-auth:18.0.0'
+    implementation 'com.firebase:geofire-java:3.0.0'
     compile 'com.google.android.gms:play-services-location:15.0.1'
 }
 
