@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "377854385319",
+    "firebase_url": "https://poolcar-11757.firebaseio.com",
+    "project_id": "poolcar-11757",
+    "storage_bucket": "poolcar-11757.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:377854385319:android:3158eb7aa491b826420f82",
+        "android_client_info": {
+          "package_name": "com.example.poolcar"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "377854385319-bva94r9j1d7gjpe1g5djrc41t61lpb3u.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.poolcar",
+            "certificate_hash": "efea1fd270c88d69ef9d3078e63d94f4e89ae3e0"
+          }
+        },
+        {
+          "client_id": "377854385319-2ca67u93cifahg4q7g18ju8uiou2vc9k.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDqvPtjZK_EMj4cBs2ZKSyHG7N9zT-fPMk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "377854385319-2ca67u93cifahg4q7g18ju8uiou2vc9k.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
