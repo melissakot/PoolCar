@@ -84,6 +84,7 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
 
         mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
         mMap.animateCamera(CameraUpdateFactory.zoomTo(16));
+        
 
 //        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 //        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("conductoresDisponibles");
