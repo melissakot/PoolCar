@@ -32,6 +32,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -48,14 +49,16 @@ import java.util.concurrent.TimeUnit;
 
 public class ConductorMapAcrivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, com.google.android.gms.location.LocationListener {
 
-    private GoogleMap mMap;
     GoogleApiClient mGoogleApiClient;
     Location mLastLocation;
     LocationRequest mLocationRequest;
-
+    private GoogleMap mMap;
     private Button mLogout;
 
     private String customerId = "";
+    private Marker pickupMarker;
+    private DatabaseReference assignedCustomerPickupLocationRef;
+    private ValueEventListener assignedCustomerPickupLocationRefListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,7 +97,14 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
                        customerId = map.get("customerRideId").toString();
                        getAssignedCustomerPickupLocation();
 
-
+                   }else{
+                       customerId = "";
+                        if (pickupMarker != null){
+                            pickupMarker.remove();
+                        }
+                        if (assignedCustomerPickupLocationRefListener != null){
+                            assignedCustomerPickupLocationRef.removeEventListener(assignedCustomerPickupLocationRefListener);
+                        }
                    }
                }
            }
@@ -107,11 +117,11 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
     }
 
     private void getAssignedCustomerPickupLocation() {
-        DatabaseReference assignedCustomerPickupLocationRef = FirebaseDatabase.getInstance().getReference().child("customerRequest").child(customerId).child("1");
-        assignedCustomerPickupLocationRef.addValueEventListener(new ValueEventListener() {
+        assignedCustomerPickupLocationRef = FirebaseDatabase.getInstance().getReference().child("customerRequest").child(customerId).child("1");
+        assignedCustomerPickupLocationRefListener = assignedCustomerPickupLocationRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()) {
+                if (dataSnapshot.exists() && !customerId.equals("")) {
                     List<Object> map = (List<Object>) dataSnapshot.getValue();
                     double locationLat = 0;
                     double locationLng = 0;
@@ -123,7 +133,7 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
                         locationLng = Double.parseDouble(map.get(1).toString());
                     }
                     LatLng driverLatLng = new LatLng(locationLat, locationLng);
-                   mMap.addMarker(new MarkerOptions().position(driverLatLng).title("pickup location"));
+                    pickupMarker = mMap.addMarker(new MarkerOptions().position(driverLatLng).title("pickup location"));
 
                 }
             }
@@ -177,7 +187,7 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
             GeoFire geoFireAvailable = new GeoFire(refAvailable);
             GeoFire geoFireWorking = new GeoFire(refWorking);
 
-            switch(customerId) {
+ /*           switch(customerId) {
                 case"":
                     geoFireWorking.removeLocation(userId);
                     geoFireAvailable.setLocation(userId, new GeoLocation(location.getLatitude(), location.getLongitude()));
@@ -187,14 +197,7 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
                     geoFireAvailable.removeLocation(userId);
                     geoFireWorking.setLocation(userId, new GeoLocation(location.getLatitude(), location.getLongitude()));
                     break;
-            }
-
-
-        
-
-
-
-
+            }*/
 
     }
     }
