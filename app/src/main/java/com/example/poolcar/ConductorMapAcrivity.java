@@ -5,32 +5,23 @@ import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentActivity;
 
-import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.drm.DrmStore;
 import android.location.Location;
-import android.location.LocationListener;
 import android.os.Bundle;
-import android.provider.ContactsContract;
-import android.renderscript.Sampler;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
 import com.firebase.geofire.GeoFire;
-import com.firebase.geofire.GeoLocation;
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.Api;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.PendingResult;
-import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -41,11 +32,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.io.FileDescriptor;
-import java.io.PrintWriter;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 public class ConductorMapAcrivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, com.google.android.gms.location.LocationListener {
 
@@ -54,6 +42,8 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
     LocationRequest mLocationRequest;
     private GoogleMap mMap;
     private Button mLogout;
+
+    private  Boolean isLoggingOut = false;
 
     private String customerId = "";
     private Marker pickupMarker;
@@ -74,6 +64,10 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
         mLogout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                isLoggingOut = true;
+
+                disconnectDriver();
+                 
                 FirebaseAuth.getInstance().signOut();
                 Intent intent = new Intent(ConductorMapAcrivity.this, MainActivity.class);
                 startActivity(intent);
@@ -169,7 +163,6 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
         mGoogleApiClient.connect();
     }
 
-
     @Override
     public void onLocationChanged(Location location) {
         if (getApplicationContext()!= null) {
@@ -227,10 +220,8 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
 
     }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
 
+    private void disconnectDriver(){
         //Comentado por Mati
         /*String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("conductoresDisponibles");
@@ -244,8 +235,17 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("conductoresDisponibles");
         GeoFire geoFire = new GeoFire(ref);
         geoFire.removeLocation(userId);*/
+    }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
 
+        if (!isLoggingOut) {
+
+            disconnectDriver();
+
+        }
 
     }
 }
