@@ -13,6 +13,7 @@ import android.view.View;
 import android.widget.Button;
 
 import com.firebase.geofire.GeoFire;
+import com.firebase.geofire.GeoLocation;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationRequest;
@@ -180,17 +181,56 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
             GeoFire geoFireAvailable = new GeoFire(refAvailable);
             GeoFire geoFireWorking = new GeoFire(refWorking);
 
- /*           switch(customerId) {
+            GeoLocation loc =  new GeoLocation(location.getLatitude(), location.getLongitude());
+//            geoFireAvailable.setLocation(userId, loc, new
+//                    GeoFire.CompletionListener(){
+//                        @Override
+//                        public void onComplete(String key, DatabaseError error) {
+//                            Boolean a = false;
+//                            //Do some stuff if you want to
+//                        }
+//                    });
+
+            switch(customerId) {
                 case"":
-                    geoFireWorking.removeLocation(userId);
-                    geoFireAvailable.setLocation(userId, new GeoLocation(location.getLatitude(), location.getLongitude()));
+                    geoFireWorking.removeLocation(userId, new
+                            GeoFire.CompletionListener(){
+                                @Override
+                                public void onComplete(String key, DatabaseError error) {
+                                    Boolean a = false;
+                                    //Do some stuff if you want to
+                                }
+                            });
+//                    GeoLocation loc =  new GeoLocation(location.getLatitude(), location.getLongitude());
+                    geoFireAvailable.setLocation(userId, new GeoLocation(location.getLatitude(), location.getLongitude()), new
+                            GeoFire.CompletionListener(){
+                                @Override
+                                public void onComplete(String key, DatabaseError error) {
+                                    Boolean a = false;
+                                    //Do some stuff if you want to
+                                }
+                            });
                 break;
 
                 default:
-                    geoFireAvailable.removeLocation(userId);
-                    geoFireWorking.setLocation(userId, new GeoLocation(location.getLatitude(), location.getLongitude()));
+                    geoFireAvailable.removeLocation(userId, new
+                            GeoFire.CompletionListener(){
+                                @Override
+                                public void onComplete(String key, DatabaseError error) {
+                                    Boolean a = false;
+                                    //Do some stuff if you want to
+                                }
+                            });
+                    geoFireWorking.setLocation(userId, new GeoLocation(location.getLatitude(), location.getLongitude()), new
+                            GeoFire.CompletionListener(){
+                                @Override
+                                public void onComplete(String key, DatabaseError error) {
+                                    Boolean a = false;
+                                    //Do some stuff if you want to
+                                }
+                            });
                     break;
-            }*/
+            }
 
     }
     }
@@ -223,11 +263,18 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
 
     private void disconnectDriver(){
         //Comentado por Mati
-        /*String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("conductoresDisponibles");
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("driversAvailable");
 
         GeoFire geoFire = new GeoFire(ref);
-        geoFire.removeLocation(userId);*/
+        geoFire.removeLocation(userId, new
+                GeoFire.CompletionListener(){
+                    @Override
+                    public void onComplete(String key, DatabaseError error) {
+                        Boolean a = false;
+                        //Do some stuff if you want to
+                    }
+                });
 
         //Comentado por Meli
         /*LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient,this);

@@ -107,7 +107,14 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
                     }
                     driverFound = false;
                     radius = 1;
-//                    geoFire.removeLocation(userId);
+                    geoFire.removeLocation(userId, new
+                            GeoFire.CompletionListener(){
+                                @Override
+                                public void onComplete(String key, DatabaseError error) {
+                                    Boolean a = false;
+                                    //Do some stuff if you want to
+                                }
+                            });
 
                     if (pickupMarker != null){
                         pickupMarker.remove();
@@ -115,7 +122,14 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
                     mRequest.setText("Pedir Auto");
                 } else {
                     requestBol = true;
-//                    geoFire.setLocation(userId, new GeoLocation(mLastLocation.getLatitude(), mLastLocation.getLongitude()));
+                    geoFire.setLocation(userId, new GeoLocation(mLastLocation.getLatitude(), mLastLocation.getLongitude()), new
+                            GeoFire.CompletionListener(){
+                                @Override
+                                public void onComplete(String key, DatabaseError error) {
+                                    Boolean a = false;
+                                    //Do some stuff if you want to
+                                }
+                            });
 
                     pickupLocation = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
                     pickupMarker = mMap.addMarker(new MarkerOptions().position(pickupLocation).title("Recoger aquí"));
