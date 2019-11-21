@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
@@ -63,14 +64,23 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
 
     private Marker pickupMarker;
 
+    private SupportMapFragment mapFragment;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pasajero_map);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+        mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(PasajeroMapActivity.this, new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_REQUEST_CODE);
+//            return;
+        }else{
+            mapFragment.getMapAsync(this);
+        }
+
 
 
         mLogout = (Button) findViewById(R.id.logout);
@@ -264,7 +274,8 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
 
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return;
+            ActivityCompat.requestPermissions(PasajeroMapActivity.this, new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_REQUEST_CODE);
+//            return;
         }
 
         buildGoogleApiClient();
@@ -304,7 +315,8 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
 
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return;
+            ActivityCompat.requestPermissions(PasajeroMapActivity.this, new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_REQUEST_CODE);
+//            return;
         }
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
     }
@@ -317,6 +329,23 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
+    }
+
+    final int LOCATION_REQUEST_CODE = 1;
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        switch (requestCode){
+            case LOCATION_REQUEST_CODE: {
+                if (grantResults.length >0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                    mapFragment.getMapAsync(this);
+                }else{
+                    Toast.makeText(getApplicationContext(), "Brinde el permiso necesario", Toast.LENGTH_LONG).show();
+                }
+                break;
+            }
+        }
     }
 
     @Override

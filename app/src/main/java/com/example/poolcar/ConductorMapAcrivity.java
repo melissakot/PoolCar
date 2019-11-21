@@ -5,12 +5,14 @@ import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentActivity;
 
+import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
@@ -51,15 +53,23 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
     private DatabaseReference assignedCustomerPickupLocationRef;
     private ValueEventListener assignedCustomerPickupLocationRefListener;
 
+    private SupportMapFragment mapFragment;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_conductor_map_acrivity);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+        mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
 
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(ConductorMapAcrivity.this, new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_REQUEST_CODE);
+//            return;
+        }else{
+            mapFragment.getMapAsync(this);
+        }
 
         mLogout = (Button) findViewById(R.id.logout);
         mLogout.setOnClickListener(new View.OnClickListener() {
@@ -148,7 +158,8 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
 
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return;
+            ActivityCompat.requestPermissions(ConductorMapAcrivity.this, new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_REQUEST_CODE);
+//            return;
         }
 
         buildGoogleApiClient();
@@ -182,14 +193,6 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
             GeoFire geoFireWorking = new GeoFire(refWorking);
 
             GeoLocation loc =  new GeoLocation(location.getLatitude(), location.getLongitude());
-//            geoFireAvailable.setLocation(userId, loc, new
-//                    GeoFire.CompletionListener(){
-//                        @Override
-//                        public void onComplete(String key, DatabaseError error) {
-//                            Boolean a = false;
-//                            //Do some stuff if you want to
-//                        }
-//                    });
 
             switch(customerId) {
                 case"":
@@ -245,7 +248,8 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
 
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return;
+            ActivityCompat.requestPermissions(ConductorMapAcrivity.this, new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_REQUEST_CODE);
+//            return;
         }
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
     }
@@ -282,6 +286,23 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("conductoresDisponibles");
         GeoFire geoFire = new GeoFire(ref);
         geoFire.removeLocation(userId);*/
+    }
+
+    final int LOCATION_REQUEST_CODE = 1;
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        switch (requestCode){
+            case LOCATION_REQUEST_CODE: {
+                if (grantResults.length >0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                    mapFragment.getMapAsync(this);
+                }else{
+                    Toast.makeText(getApplicationContext(), "Brinde el permiso necesario", Toast.LENGTH_LONG).show();
+                }
+                break;
+            }
+        }
     }
 
     @Override
