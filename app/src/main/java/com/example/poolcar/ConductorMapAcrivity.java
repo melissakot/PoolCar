@@ -78,6 +78,9 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
                 isLoggingOut = true;
 
                 disconnectDriver();
+
+                mGoogleApiClient.disconnect();
+                mMap.stopAnimation();
                  
                 FirebaseAuth.getInstance().signOut();
                 Intent intent = new Intent(ConductorMapAcrivity.this, MainActivity.class);
@@ -177,7 +180,7 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
 
     @Override
     public void onLocationChanged(Location location) {
-        if (getApplicationContext()!= null) {
+        if (getApplicationContext()!= null && !isLoggingOut) {
 
             mLastLocation = location;
 

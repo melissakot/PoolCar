@@ -61,6 +61,7 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
     private LatLng pickupLocation;
 
     private Boolean requestBol = false;
+    private  Boolean isLoggingOut = false;
 
     private Marker pickupMarker;
 
@@ -90,7 +91,10 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
         mLogout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                isLoggingOut = true;
                 FirebaseAuth.getInstance().signOut();
+                mGoogleApiClient.disconnect();
+                mMap.stopAnimation();
                 Intent intent = new Intent(PasajeroMapActivity.this, MainActivity.class);
                 startActivity(intent);
                 finish();
@@ -170,7 +174,7 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
     private GeoQuery geoQuery;
 
     private void getClossestDriver() {
-        DatabaseReference driverLocation = FirebaseDatabase.getInstance().getReference().child("driverAvailable");
+        DatabaseReference driverLocation = FirebaseDatabase.getInstance().getReference().child("driversAvailable");
 
         GeoFire geoFire = new GeoFire((driverLocation));
 
@@ -190,9 +194,9 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
                     HashMap map = new HashMap();
                     map.put("customerRideId", customerID);
                     driverRef.updateChildren(map);
-
+                    mRequest.setText("Buscando la ubicación del conductor");
                     getDriverLocation();
-                    mRequest.setText("Buscando la ubicación del condcutor");
+
 
                 }
 
@@ -215,14 +219,15 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
 
                 if (!driverFound) {
                     radius++;
-                    getClossestDriver();
+//                    getClossestDriver();
+                    geoQuery.setRadius(radius);
                 }
 
             }
 
             @Override
             public void onGeoQueryError(DatabaseError error) {
-
+//                System.err.println("There was an error with this query: " + error);
             }
         });
 
@@ -261,7 +266,7 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                System.err.println("There was an error in getDriverLocation(): "+ databaseError.getMessage().toString());
             }
         });
 
@@ -280,6 +285,7 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
 
         buildGoogleApiClient();
         mMap.setMyLocationEnabled(true);
+
     }
 
     protected synchronized void buildGoogleApiClient() {
@@ -294,7 +300,7 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
 
     @Override
     public void onLocationChanged(Location location) {
-        if (getApplicationContext() != null) {
+        if (getApplicationContext() != null && !isLoggingOut) {
             mLastLocation = location;
 
             LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
