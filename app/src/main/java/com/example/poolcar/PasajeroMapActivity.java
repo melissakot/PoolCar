@@ -142,7 +142,7 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
                     if (pickupMarker != null) {
                         pickupMarker.remove();
                     }
-                    mRequest.setText("Pedir Auto");
+                    mRequest.setText("Llamar al conductor");
                 } else {
                     requestBol = true;
                     geoFire.setLocation(userId, new GeoLocation(mLastLocation.getLatitude(), mLastLocation.getLongitude()), new
