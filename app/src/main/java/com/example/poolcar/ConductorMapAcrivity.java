@@ -58,7 +58,7 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
     private SupportMapFragment mapFragment;
 
     private LinearLayout mCustomerInfo;
-    private TextView mCustomerName, mCustomerPhone;
+    private TextView mCustomerName, mCustomerPhone, mCustomerDestination;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,6 +79,7 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
         mCustomerInfo = (LinearLayout) findViewById(R.id.pasajeroInfo);
         mCustomerName  = (TextView) findViewById(R.id.pasajeroName);
         mCustomerPhone = (TextView) findViewById(R.id.pasajeroPhone);
+        mCustomerDestination = (TextView) findViewById(R.id.pasajeroDestination);
 
 
         mLogout = (Button) findViewById(R.id.logout);
@@ -105,7 +106,8 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
 
     private void getAssignedCustomer() {
         String driverId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        DatabaseReference assignedCustomerRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Drivers").child(driverId);
+//        DatabaseReference assignedCustomerRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Drivers").child(driverId);
+        DatabaseReference assignedCustomerRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Conductores").child(driverId).child("customerRequest").child("customerRideId");
        assignedCustomerRef.addValueEventListener(new ValueEventListener() {
            @Override
            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -114,6 +116,7 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
                    if (map.get("customerRideId")!= null) {
                        customerId = map.get("customerRideId").toString();
                        getAssignedCustomerPickupLocation();
+                       getAssignedCustomerDestination();
                        getAssignedCustomerInfo();
                    }else{
                        customerId = "";
@@ -127,6 +130,7 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
                        mCustomerInfo.setVisibility(View.GONE);
                        mCustomerName.setText("");
                        mCustomerPhone.setText("");
+                       mCustomerDestination.setText("");
                    }
                }
            }
@@ -136,6 +140,30 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
 
            }
        });
+    }
+
+    private void getAssignedCustomerDestination() {
+        String driverId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        DatabaseReference assignedCustomerRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Conductores").child(driverId).child("customerRequest").child("customerDestination");
+        assignedCustomerRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    Map<String, Object> map = (Map<String,Object>) dataSnapshot.getValue();
+                    if (map.get("customerRideId")!= null) {
+                        String mDestination = map.get("customerDestination").toString();
+                        mCustomerDestination.setText("Destino: " + mDestination);
+                    }else{
+                        mCustomerDestination.setText("Destino: --");
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
     }
 
     private void getAssignedCustomerInfo() {

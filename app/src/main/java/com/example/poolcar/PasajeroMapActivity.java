@@ -35,7 +35,9 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 import com.google.firebase.auth.FirebaseAuth;
@@ -122,7 +124,7 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
                     driverLocationRef.removeEventListener(driverLocationRefListener);
 
                     if (driverFoundID != null) {
-                        DatabaseReference driverRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Drivers").child(driverFoundID);
+                        DatabaseReference driverRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Conductores").child(driverFoundID);
                         driverRef.setValue(true);
                         driverFoundID = null;
                     }
@@ -147,7 +149,7 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
                             GeoFire.CompletionListener() {
                                 @Override
                                 public void onComplete(String key, DatabaseError error) {
-                                    Boolean a = false;
+//                                    Boolean a = false;
                                     //Do some stuff if you want to
                                 }
                             });
@@ -171,6 +173,16 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
             }
         });
 
+        /**
+         * Initialize Places. For simplicity, the API key is hard-coded. In a production
+         * environment we recommend using a secure mechanism to manage API keys.
+         */
+        if (!Places.isInitialized()) {
+            Places.initialize(getApplicationContext(), "AIzaSyBIRJQawafcAqAjJyDFfgt_Nja6LOCBZEY");
+            // Create a new Places client instance.
+            PlacesClient placesClient = Places.createClient(this);
+        }
+
         // Initialize the AutocompleteSupportFragment.
         AutocompleteSupportFragment autocompleteFragment = (AutocompleteSupportFragment)
                 getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
@@ -184,13 +196,14 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
             public void onPlaceSelected(Place place) {
                 // TODO: Get info about the selected place.
                 destination = place.getName().toString();
+
 //                Log.i(TAG, "Place: " + place.getName() + ", " + place.getId());
             }
 
             @Override
             public void onError(Status status) {
                 // TODO: Handle the error.
-//                Log.i(TAG, "An error occurred: " + status);
+                Log.i("Error", "An error occurred: " + status);
             }
         });
 
@@ -203,7 +216,7 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
 
     private void getClossestDriver() {
         DatabaseReference driverLocation = FirebaseDatabase.getInstance().getReference().child("driversAvailable");
-
+        //Ver si hay que poner driversWorking en lugar de Available,
         GeoFire geoFire = new GeoFire((driverLocation));
 
         geoQuery = geoFire.queryAtLocation(new GeoLocation(pickupLocation.latitude, pickupLocation.longitude), radius);
@@ -218,7 +231,7 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
                     driverFoundID = key;
 
 //                    DatabaseReference driverRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Conductores").child(driverFoundID);
-                    DatabaseReference driverRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Conductores").child(driverFoundID).child("pedidoCliente");
+                    DatabaseReference driverRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Conductores").child(driverFoundID).child("customerRequest");
                     String customerID = FirebaseAuth.getInstance().getCurrentUser().getUid();
                     HashMap map = new HashMap();
                     map.put("customerRideId", customerID);
