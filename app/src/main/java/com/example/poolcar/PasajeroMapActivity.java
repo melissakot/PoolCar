@@ -35,11 +35,6 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.libraries.places.api.Places;
-import com.google.android.libraries.places.api.model.Place;
-import com.google.android.libraries.places.api.net.PlacesClient;
-import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
-import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -49,7 +44,6 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -67,13 +61,11 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
     private LatLng pickupLocation;
 
     private Boolean requestBol = false;
-    private Boolean isLoggingOut = false;
+    private  Boolean isLoggingOut = false;
 
     private Marker pickupMarker;
 
     private SupportMapFragment mapFragment;
-
-    private String destination;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,11 +76,12 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
                 .findFragmentById(R.id.map);
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(PasajeroMapActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_REQUEST_CODE);
+            ActivityCompat.requestPermissions(PasajeroMapActivity.this, new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_REQUEST_CODE);
 //            return;
-        } else {
+        }else{
             mapFragment.getMapAsync(this);
         }
+
 
 
         mLogout = (Button) findViewById(R.id.logout);
@@ -123,15 +116,15 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
                     geoQuery.removeAllListeners();
                     driverLocationRef.removeEventListener(driverLocationRefListener);
 
-                    if (driverFoundID != null) {
-                        DatabaseReference driverRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Conductores").child(driverFoundID);
+                    if (driverFoundID != null){
+                        DatabaseReference driverRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Drivers").child(driverFoundID);
                         driverRef.setValue(true);
                         driverFoundID = null;
                     }
                     driverFound = false;
                     radius = 1;
                     geoFire.removeLocation(userId, new
-                            GeoFire.CompletionListener() {
+                            GeoFire.CompletionListener(){
                                 @Override
                                 public void onComplete(String key, DatabaseError error) {
                                     Boolean a = false;
@@ -139,17 +132,17 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
                                 }
                             });
 
-                    if (pickupMarker != null) {
+                    if (pickupMarker != null){
                         pickupMarker.remove();
                     }
-                    mRequest.setText("Llamar al conductor");
+                    mRequest.setText("Pedir Auto");
                 } else {
                     requestBol = true;
                     geoFire.setLocation(userId, new GeoLocation(mLastLocation.getLatitude(), mLastLocation.getLongitude()), new
-                            GeoFire.CompletionListener() {
+                            GeoFire.CompletionListener(){
                                 @Override
                                 public void onComplete(String key, DatabaseError error) {
-//                                    Boolean a = false;
+                                    Boolean a = false;
                                     //Do some stuff if you want to
                                 }
                             });
@@ -173,40 +166,6 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
             }
         });
 
-        /**
-         * Initialize Places. For simplicity, the API key is hard-coded. In a production
-         * environment we recommend using a secure mechanism to manage API keys.
-         */
-        if (!Places.isInitialized()) {
-            Places.initialize(getApplicationContext(), "AIzaSyBIRJQawafcAqAjJyDFfgt_Nja6LOCBZEY");
-            // Create a new Places client instance.
-            PlacesClient placesClient = Places.createClient(this);
-        }
-
-        // Initialize the AutocompleteSupportFragment.
-        AutocompleteSupportFragment autocompleteFragment = (AutocompleteSupportFragment)
-                getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
-
-        // Specify the types of place data to return.
-        autocompleteFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME));
-
-        // Set up a PlaceSelectionListener to handle the response.
-        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
-            @Override
-            public void onPlaceSelected(Place place) {
-                // TODO: Get info about the selected place.
-                destination = place.getName().toString();
-
-//                Log.i(TAG, "Place: " + place.getName() + ", " + place.getId());
-            }
-
-            @Override
-            public void onError(Status status) {
-                // TODO: Handle the error.
-                Log.i("Error", "An error occurred: " + status);
-            }
-        });
-
     }
 
     private int radius = 1;
@@ -215,8 +174,8 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
     private GeoQuery geoQuery;
 
     private void getClossestDriver() {
-        DatabaseReference driverLocation = FirebaseDatabase.getInstance().getReference().child("driversAvailable");
-        //Ver si hay que poner driversWorking en lugar de Available,
+        DatabaseReference driverLocation = FirebaseDatabase.getInstance().getReference().child("driversWorking");
+
         GeoFire geoFire = new GeoFire((driverLocation));
 
         geoQuery = geoFire.queryAtLocation(new GeoLocation(pickupLocation.latitude, pickupLocation.longitude), radius);
@@ -230,12 +189,10 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
                     driverFound = true;
                     driverFoundID = key;
 
-//                    DatabaseReference driverRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Conductores").child(driverFoundID);
-                    DatabaseReference driverRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Conductores").child(driverFoundID).child("customerRequest");
+                    DatabaseReference driverRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Drivers").child(driverFoundID);
                     String customerID = FirebaseAuth.getInstance().getCurrentUser().getUid();
                     HashMap map = new HashMap();
                     map.put("customerRideId", customerID);
-                    map.put("customerDestination", destination);
                     driverRef.updateChildren(map);
                     mRequest.setText("Buscando la ubicación del conductor");
                     getDriverLocation();
@@ -257,16 +214,21 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
 
             //Si no encuentra un conductor en radio de 1 km, aumenta el radio y vuelve a ejecutar la funcion
             //de búsqueda de conductor
+
+            //// aca 
             @Override
             public void onGeoQueryReady() {
-
+//                if ()
                 if (!driverFound) {
-                    radius++;
+//                    radius++;
 //                    getClossestDriver();
+                    radius = radius +1;
                     geoQuery.setRadius(radius);
                 }
-
             }
+
+
+
 
             @Override
             public void onGeoQueryError(DatabaseError error) {
@@ -309,7 +271,7 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                System.err.println("There was an error in getDriverLocation(): " + databaseError.getMessage().toString());
+                System.err.println("There was an error in getDriverLocation(): "+ databaseError.getMessage().toString());
             }
         });
 
@@ -322,7 +284,7 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
 
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(PasajeroMapActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_REQUEST_CODE);
+            ActivityCompat.requestPermissions(PasajeroMapActivity.this, new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_REQUEST_CODE);
 //            return;
         }
 
@@ -364,7 +326,7 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
 
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(PasajeroMapActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_REQUEST_CODE);
+            ActivityCompat.requestPermissions(PasajeroMapActivity.this, new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_REQUEST_CODE);
 //            return;
         }
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
@@ -381,16 +343,15 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
     }
 
     final int LOCATION_REQUEST_CODE = 1;
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
-        switch (requestCode) {
+        switch (requestCode){
             case LOCATION_REQUEST_CODE: {
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (grantResults.length >0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
                     mapFragment.getMapAsync(this);
-                } else {
+                }else{
                     Toast.makeText(getApplicationContext(), "Brinde el permiso necesario", Toast.LENGTH_LONG).show();
                 }
                 break;

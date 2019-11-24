@@ -12,8 +12,6 @@ import android.location.Location;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.firebase.geofire.GeoFire;
@@ -57,9 +55,6 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
 
     private SupportMapFragment mapFragment;
 
-    private LinearLayout mCustomerInfo;
-    private TextView mCustomerName, mCustomerPhone, mCustomerDestination;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -75,12 +70,6 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
         }else{
             mapFragment.getMapAsync(this);
         }
-
-        mCustomerInfo = (LinearLayout) findViewById(R.id.pasajeroInfo);
-        mCustomerName  = (TextView) findViewById(R.id.pasajeroName);
-        mCustomerPhone = (TextView) findViewById(R.id.pasajeroPhone);
-        mCustomerDestination = (TextView) findViewById(R.id.pasajeroDestination);
-
 
         mLogout = (Button) findViewById(R.id.logout);
         mLogout.setOnClickListener(new View.OnClickListener() {
@@ -106,8 +95,7 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
 
     private void getAssignedCustomer() {
         String driverId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-//        DatabaseReference assignedCustomerRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Drivers").child(driverId);
-        DatabaseReference assignedCustomerRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Conductores").child(driverId).child("customerRequest").child("customerRideId");
+        DatabaseReference assignedCustomerRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Drivers").child(driverId);
        assignedCustomerRef.addValueEventListener(new ValueEventListener() {
            @Override
            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -116,8 +104,7 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
                    if (map.get("customerRideId")!= null) {
                        customerId = map.get("customerRideId").toString();
                        getAssignedCustomerPickupLocation();
-                       getAssignedCustomerDestination();
-                       getAssignedCustomerInfo();
+
                    }else{
                        customerId = "";
                         if (pickupMarker != null){
@@ -125,12 +112,7 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
                         }
                         if (assignedCustomerPickupLocationRefListener != null){
                             assignedCustomerPickupLocationRef.removeEventListener(assignedCustomerPickupLocationRefListener);
-
                         }
-                       mCustomerInfo.setVisibility(View.GONE);
-                       mCustomerName.setText("");
-                       mCustomerPhone.setText("");
-                       mCustomerDestination.setText("");
                    }
                }
            }
@@ -142,56 +124,8 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
        });
     }
 
-    private void getAssignedCustomerDestination() {
-        String driverId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        DatabaseReference assignedCustomerRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Conductores").child(driverId).child("customerRequest").child("customerDestination");
-        assignedCustomerRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()) {
-                    Map<String, Object> map = (Map<String,Object>) dataSnapshot.getValue();
-                    if (map.get("customerRideId")!= null) {
-                        String mDestination = map.get("customerDestination").toString();
-                        mCustomerDestination.setText("Destino: " + mDestination);
-                    }else{
-                        mCustomerDestination.setText("Destino: --");
-                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
-    }
-
-    private void getAssignedCustomerInfo() {
-        mCustomerInfo.setVisibility(View.VISIBLE);
-        DatabaseReference mCustomerDatabase = FirebaseDatabase.getInstance().getReference().child("Users").child("Pasajeros").child(customerId);
-        mCustomerDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists() && dataSnapshot.getChildrenCount()>0){
-                    Map<String, Object> map = (Map<String, Object>) dataSnapshot.getValue();
-                    if (map.get("nombre")!=null){
-                        mCustomerName.setText(map.get("nombre").toString());
-                    }
-                    if (map.get("telefono")!=null){
-                        mCustomerPhone.setText(map.get("telefono").toString());
-                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
-    }
-
     private void getAssignedCustomerPickupLocation() {
-        assignedCustomerPickupLocationRef = FirebaseDatabase.getInstance().getReference().child("customerRequest").child(customerId).child("1");
+        assignedCustomerPickupLocationRef = FirebaseDatabase.getInstance().getReference().child("pedido del pasajero").child(customerId).child("1");
         assignedCustomerPickupLocationRefListener = assignedCustomerPickupLocationRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
