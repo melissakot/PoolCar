@@ -64,7 +64,7 @@ public class PasajeroLoginActivity extends AppCompatActivity {
                             Toast.makeText(PasajeroLoginActivity.this, "error en el log in", Toast.LENGTH_SHORT).show();
                         } else {
                             String user_id = mAuth.getCurrentUser().getUid();
-                            DatabaseReference current_user_db = FirebaseDatabase.getInstance().getReference().child("Users").child("Pasajeros").child(user_id);
+                            DatabaseReference current_user_db = FirebaseDatabase.getInstance().getReference().child("Users").child("Customers").child(user_id);
                             current_user_db.setValue(true);
 
                         }

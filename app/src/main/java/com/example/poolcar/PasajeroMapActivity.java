@@ -114,7 +114,7 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
             public void onClick(View v) {
 
                 String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-                DatabaseReference ref = FirebaseDatabase.getInstance().getReference("pedido del pasajero");
+                DatabaseReference ref = FirebaseDatabase.getInstance().getReference("CustomerRequest");//("pedido del pasajero");
                 GeoFire geoFire = new GeoFire(ref);
 
                 if (requestBol) {
@@ -124,7 +124,7 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
                     driverLocationRef.removeEventListener(driverLocationRefListener);
 
                     if (driverFoundID != null) {
-                        DatabaseReference driverRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Conductores").child(driverFoundID);
+                        DatabaseReference driverRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Drivers").child(driverFoundID).child("CustomerRequest");
                         driverRef.setValue(true);
                         driverFoundID = null;
                     }
@@ -215,7 +215,7 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
     private GeoQuery geoQuery;
 
     private void getClossestDriver() {
-        DatabaseReference driverLocation = FirebaseDatabase.getInstance().getReference().child("driversAvailable");
+        DatabaseReference driverLocation = FirebaseDatabase.getInstance().getReference().child("DriversAvailable");
         //Ver si hay que poner driversWorking en lugar de Available,
         GeoFire geoFire = new GeoFire((driverLocation));
 
@@ -231,11 +231,13 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
                     driverFoundID = key;
 
 //                    DatabaseReference driverRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Conductores").child(driverFoundID);
-                    DatabaseReference driverRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Conductores").child(driverFoundID).child("customerRequest");
+                    DatabaseReference driverRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Drivers").child(driverFoundID).child("CustomerRequest");
                     String customerID = FirebaseAuth.getInstance().getCurrentUser().getUid();
                     HashMap map = new HashMap();
-                    map.put("customerRideId", customerID);
-                    map.put("customerDestination", destination);
+                    map.put("CustomerRideId", customerID);
+                    if (!destination.equals("")) {
+                        map.put("CustomerDestination", destination);
+                    }
                     driverRef.updateChildren(map);
                     mRequest.setText("Buscando la ubicación del conductor");
                     getDriverLocation();
@@ -282,7 +284,7 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
     private ValueEventListener driverLocationRefListener;
 
     private void getDriverLocation() {
-        driverLocationRef = FirebaseDatabase.getInstance().getReference().child("driversWorking").child(driverFoundID).child("1");
+        driverLocationRef = FirebaseDatabase.getInstance().getReference().child("DriversWorking").child(driverFoundID).child("1");
         driverLocationRefListener = driverLocationRef.addValueEventListener(new ValueEventListener() {
             //Se llama a esta funcion cada vez que la ubicacion cambia
             @Override
@@ -291,7 +293,7 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
                     List<Object> map = (List<Object>) dataSnapshot.getValue();
                     double locationLat = 0;
                     double locationLng = 0;
-                    mRequest.setText("Driver found");
+                    mRequest.setText("Conductor Encontrado");
                     if (map.get(0) != null) {
                         locationLat = Double.parseDouble(map.get(0).toString());
                     }
@@ -302,14 +304,14 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
                     if (mDriverMarker != null) {
                         mDriverMarker.remove();
                     }
-                    mDriverMarker = mMap.addMarker(new MarkerOptions().position(driverLatLng).title("your driver"));
+                    mDriverMarker = mMap.addMarker(new MarkerOptions().position(driverLatLng).title("Tu conductor"));
                 }
 
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                System.err.println("There was an error in getDriverLocation(): " + databaseError.getMessage().toString());
+//                System.err.println("There was an error in getDriverLocation(): " + databaseError.getMessage().toString());
             }
         });
 

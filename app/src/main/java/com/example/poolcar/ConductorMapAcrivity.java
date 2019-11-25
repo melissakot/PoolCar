@@ -107,14 +107,20 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
     private void getAssignedCustomer() {
         String driverId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 //        DatabaseReference assignedCustomerRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Drivers").child(driverId);
-        DatabaseReference assignedCustomerRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Conductores").child(driverId).child("customerRequest").child("customerRideId");
+        DatabaseReference assignedCustomerRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Drivers").child(driverId).child("CustomerRequest").child("CustomerRideId");
        assignedCustomerRef.addValueEventListener(new ValueEventListener() {
            @Override
            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                if (dataSnapshot.exists()) {
-                   Map<String, Object> map = (Map<String,Object>) dataSnapshot.getValue();
-                   if (map.get("customerRideId")!= null) {
-                       customerId = map.get("customerRideId").toString();
+                   Map<String, Object> map;
+                   customerId = dataSnapshot.getValue().toString();
+                   if(customerId.equals("")) {
+                      map  = (Map<String, Object>) dataSnapshot.getValue();
+                       if (map.get("CustomerRideId")!= null){
+                           customerId = map.get("CustomerRideId").toString();
+                       }
+                   };
+                   if (customerId != "") {
                        getAssignedCustomerPickupLocation();
                        getAssignedCustomerDestination();
                        getAssignedCustomerInfo();
@@ -144,14 +150,14 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
 
     private void getAssignedCustomerDestination() {
         String driverId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        DatabaseReference assignedCustomerRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Conductores").child(driverId).child("customerRequest").child("customerDestination");
+        DatabaseReference assignedCustomerRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Drivers").child(driverId).child("CustomerRequest");//.child("CustomerDestination");
         assignedCustomerRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
                     Map<String, Object> map = (Map<String,Object>) dataSnapshot.getValue();
-                    if (map.get("customerRideId")!= null) {
-                        String mDestination = map.get("customerDestination").toString();
+                    if (map.get("CustomerRideId")!= null && map.get("CustomerDestination")!= null) {
+                        String mDestination = map.get("CustomerDestination").toString();
                         mCustomerDestination.setText("Destino: " + mDestination);
                     }else{
                         mCustomerDestination.setText("Destino: --");
@@ -168,7 +174,7 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
 
     private void getAssignedCustomerInfo() {
         mCustomerInfo.setVisibility(View.VISIBLE);
-        DatabaseReference mCustomerDatabase = FirebaseDatabase.getInstance().getReference().child("Users").child("Pasajeros").child(customerId);
+        DatabaseReference mCustomerDatabase = FirebaseDatabase.getInstance().getReference().child("Users").child("Customers").child(customerId);
         mCustomerDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -191,12 +197,13 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
     }
 
     private void getAssignedCustomerPickupLocation() {
-        assignedCustomerPickupLocationRef = FirebaseDatabase.getInstance().getReference().child("customerRequest").child(customerId).child("1");
+        assignedCustomerPickupLocationRef = FirebaseDatabase.getInstance().getReference().child("CustomerRequest").child(customerId).child("l");
         assignedCustomerPickupLocationRefListener = assignedCustomerPickupLocationRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists() && !customerId.equals("")) {
+                if (dataSnapshot.exists()) {
                     List<Object> map = (List<Object>) dataSnapshot.getValue();
+//                    Map<String, Object> map = (Map<String,Object>) dataSnapshot.getValue();
                     double locationLat = 0;
                     double locationLng = 0;
                     if (map.get(0) != null) {
@@ -256,8 +263,8 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
             mMap.animateCamera(CameraUpdateFactory.zoomTo(16));
 
             String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-            DatabaseReference refAvailable = FirebaseDatabase.getInstance().getReference("driversAvailable");
-            DatabaseReference refWorking = FirebaseDatabase.getInstance().getReference("driversWorking");
+            DatabaseReference refAvailable = FirebaseDatabase.getInstance().getReference("DriversAvailable");
+            DatabaseReference refWorking = FirebaseDatabase.getInstance().getReference("DriversWorking");
             GeoFire geoFireAvailable = new GeoFire(refAvailable);
             GeoFire geoFireWorking = new GeoFire(refWorking);
 
@@ -337,7 +344,7 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
     private void disconnectDriver(){
         //Comentado por Mati
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("driversAvailable");
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("DriversAvailable");
 
         GeoFire geoFire = new GeoFire(ref);
         geoFire.removeLocation(userId, new
