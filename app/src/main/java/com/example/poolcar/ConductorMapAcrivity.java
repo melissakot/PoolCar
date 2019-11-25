@@ -112,9 +112,15 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
            @Override
            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                if (dataSnapshot.exists()) {
-                   Map<String, Object> map = (Map<String,Object>) dataSnapshot.getValue();
-                   if (map.get("CustomerRideId")!= null) {
-                       customerId = map.get("CustomerRideId").toString();
+                   Map<String, Object> map;
+                   customerId = dataSnapshot.getValue().toString();
+                   if(customerId.equals("")) {
+                      map  = (Map<String, Object>) dataSnapshot.getValue();
+                       if (map.get("CustomerRideId")!= null){
+                           customerId = map.get("CustomerRideId").toString();
+                       }
+                   };
+                   if (customerId != "") {
                        getAssignedCustomerPickupLocation();
                        getAssignedCustomerDestination();
                        getAssignedCustomerInfo();
@@ -144,13 +150,13 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
 
     private void getAssignedCustomerDestination() {
         String driverId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        DatabaseReference assignedCustomerRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Drivers").child(driverId).child("CustomerRequest").child("CustomerDestination");
+        DatabaseReference assignedCustomerRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Drivers").child(driverId).child("CustomerRequest");//.child("CustomerDestination");
         assignedCustomerRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
                     Map<String, Object> map = (Map<String,Object>) dataSnapshot.getValue();
-                    if (map.get("CustomerRideId")!= null) {
+                    if (map.get("CustomerRideId")!= null && map.get("CustomerDestination")!= null) {
                         String mDestination = map.get("CustomerDestination").toString();
                         mCustomerDestination.setText("Destino: " + mDestination);
                     }else{
@@ -191,12 +197,13 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
     }
 
     private void getAssignedCustomerPickupLocation() {
-        assignedCustomerPickupLocationRef = FirebaseDatabase.getInstance().getReference().child("CustomerRequest").child(customerId).child("1");
+        assignedCustomerPickupLocationRef = FirebaseDatabase.getInstance().getReference().child("CustomerRequest").child(customerId).child("l");
         assignedCustomerPickupLocationRefListener = assignedCustomerPickupLocationRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists() && !customerId.equals("")) {
+                if (dataSnapshot.exists()) {
                     List<Object> map = (List<Object>) dataSnapshot.getValue();
+//                    Map<String, Object> map = (Map<String,Object>) dataSnapshot.getValue();
                     double locationLat = 0;
                     double locationLng = 0;
                     if (map.get(0) != null) {

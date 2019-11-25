@@ -142,7 +142,7 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
                     if (pickupMarker != null) {
                         pickupMarker.remove();
                     }
-                    mRequest.setText("Pedir Auto");
+                    mRequest.setText("Llamar al conductor");
                 } else {
                     requestBol = true;
                     geoFire.setLocation(userId, new GeoLocation(mLastLocation.getLatitude(), mLastLocation.getLongitude()), new
@@ -235,7 +235,9 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
                     String customerID = FirebaseAuth.getInstance().getCurrentUser().getUid();
                     HashMap map = new HashMap();
                     map.put("CustomerRideId", customerID);
-                    map.put("CustomerDestination", destination);
+                    if (!destination.equals("")) {
+                        map.put("CustomerDestination", destination);
+                    }
                     driverRef.updateChildren(map);
                     mRequest.setText("Buscando la ubicación del conductor");
                     getDriverLocation();
