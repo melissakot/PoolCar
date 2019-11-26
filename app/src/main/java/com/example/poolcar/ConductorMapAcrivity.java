@@ -136,21 +136,21 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
                         getAssignedCustomerInfo();
                     }
                 } else {
-                     else {
-                        customerId = "";
-                        erasePolylines();
-                        if (pickupMarker != null) {
-                            pickupMarker.remove();
-                        }
-                        if (assignedCustomerPickupLocationRefListener != null) {
-                            assignedCustomerPickupLocationRef.removeEventListener(assignedCustomerPickupLocationRefListener);
 
-                        }
-                        mCustomerInfo.setVisibility(View.GONE);
-                        mCustomerName.setText("");
-                        mCustomerPhone.setText("");
-                        mCustomerDestination.setText("");
+                    customerId = "";
+                    erasePolylines();
+                    if (pickupMarker != null) {
+                        pickupMarker.remove();
                     }
+                    if (assignedCustomerPickupLocationRefListener != null) {
+                        assignedCustomerPickupLocationRef.removeEventListener(assignedCustomerPickupLocationRefListener);
+
+                    }
+                    mCustomerInfo.setVisibility(View.GONE);
+                    mCustomerName.setText("");
+                    mCustomerPhone.setText("");
+                    mCustomerDestination.setText("");
+
                 }
             }
 
