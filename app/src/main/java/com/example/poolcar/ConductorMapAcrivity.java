@@ -53,19 +53,28 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
     GoogleApiClient mGoogleApiClient;
     Location mLastLocation;
     LocationRequest mLocationRequest;
+
     private GoogleMap mMap;
-    private Button mLogout;
+
+    private Button mLogout, mRideStatus;
+
+    private int status = 0;
 
     private Boolean isLoggingOut = false;
 
-    private String customerId = "";
+    private String customerId = "", destination;
+
+    private LatLng destinationLatLng;
+
     private Marker pickupMarker;
+
     private DatabaseReference assignedCustomerPickupLocationRef;
     private ValueEventListener assignedCustomerPickupLocationRefListener;
 
     private SupportMapFragment mapFragment;
 
     private LinearLayout mCustomerInfo;
+
     private TextView mCustomerName, mCustomerPhone, mCustomerDestination;
 
     @Override
@@ -91,6 +100,26 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
         mCustomerPhone = (TextView) findViewById(R.id.pasajeroPhone);
         mCustomerDestination = (TextView) findViewById(R.id.pasajeroDestination);
 
+        mRideStatus = (Button) findViewById(R.id.rideStatus);
+        mRideStatus.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                switch (status) {
+                    case 1: //Going to pickup Customer
+                        status = 2;
+                        erasePolylines();
+                        if (destinationLatLng.latitude != 0.0 && destinationLatLng.longitude != 0.0){
+                            getRouteToMarker(destinationLatLng);
+                        }
+                        mRideStatus.setText("Viaje Completado");
+
+                        break;
+                    case 2: //Going to destination
+                        endRide();
+                        break;
+                }
+            }
+        });
 
         mLogout = (Button) findViewById(R.id.logout);
         mLogout.setOnClickListener(new View.OnClickListener() {
@@ -115,14 +144,16 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
     }
 
     private void getAssignedCustomer() {
+
         String driverId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-//        DatabaseReference assignedCustomerRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Drivers").child(driverId);
         DatabaseReference assignedCustomerRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Drivers").child(driverId).child("CustomerRequest").child("CustomerRideId");
+
         assignedCustomerRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
                     Map<String, Object> map;
+                    status = 1;
                     customerId = dataSnapshot.getValue().toString();
                     if (customerId.equals("")) {
                         map = (Map<String, Object>) dataSnapshot.getValue();
@@ -135,21 +166,9 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
                         getAssignedCustomerDestination();
                         getAssignedCustomerInfo();
                     }
+
                 } else {
-
-                    customerId = "";
-                    erasePolylines();
-                    if (pickupMarker != null) {
-                        pickupMarker.remove();
-                    }
-                    if (assignedCustomerPickupLocationRefListener != null) {
-                        assignedCustomerPickupLocationRef.removeEventListener(assignedCustomerPickupLocationRefListener);
-
-                    }
-                    mCustomerInfo.setVisibility(View.GONE);
-                    mCustomerName.setText("");
-                    mCustomerPhone.setText("");
-                    mCustomerDestination.setText("");
+                    endRide();
 
                 }
             }
@@ -164,17 +183,31 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
     private void getAssignedCustomerDestination() {
         String driverId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         DatabaseReference assignedCustomerRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Drivers").child(driverId).child("CustomerRequest");//.child("CustomerDestination");
+//        DatabaseReference assignedCustomerRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Drivers").child(driverId).child("CustomerRequest").child("CustomerDestination");
         assignedCustomerRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
                     Map<String, Object> map = (Map<String, Object>) dataSnapshot.getValue();
-                    if (map.get("CustomerRideId") != null && map.get("CustomerDestination") != null) {
-                        String mDestination = map.get("CustomerDestination").toString();
+                    if (map.get("Destination") != null) {  //&& map.get("CustomerRideId") != null
+                        String mDestination = map.get("Destination").toString();
                         mCustomerDestination.setText("Destino: " + mDestination);
                     } else {
                         mCustomerDestination.setText("Destino: --");
                     }
+
+                    Double destinationLat = 0.0;
+                    Double destinationLng = 0.0;
+                    if (map.get("DestinationLat") != null){
+                        destinationLat = Double.valueOf(map.get("DestinationLat").toString());
+                    }
+                    if (map.get("DestinationLng") != null){
+                        destinationLng = Double.valueOf(map.get("DestinationLng").toString());
+                    }
+                    if ( destinationLat != 0.0 && destinationLng != 0.0){
+                        destinationLatLng = new LatLng(destinationLat, destinationLng);
+                    }
+
                 }
             }
 
@@ -250,6 +283,40 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
         routing.execute();
     }
 
+    private void endRide() {
+
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("CustomerRequest");//("pedido del pasajero");
+        GeoFire geoFire = new GeoFire(ref);
+
+        erasePolylines();
+        mRideStatus.setText("Pasajero recogido");
+
+        DatabaseReference driverRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Drivers").child(userId).child("CustomerRequest");
+        driverRef.setValue(true);
+
+        geoFire.removeLocation(customerId, new
+                GeoFire.CompletionListener() {
+                    @Override
+                    public void onComplete(String key, DatabaseError error) {
+                        Boolean a = false;
+                        //Do some stuff if you want to
+                    }
+                });
+        customerId = "";
+        if (pickupMarker != null) {
+            pickupMarker.remove();
+        }
+
+        if (assignedCustomerPickupLocationRefListener != null) {
+            assignedCustomerPickupLocationRef.removeEventListener(assignedCustomerPickupLocationRefListener);
+
+        }
+        mCustomerInfo.setVisibility(View.GONE);
+        mCustomerName.setText("");
+        mCustomerPhone.setText("");
+        mCustomerDestination.setText("Destino: --");
+    }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
