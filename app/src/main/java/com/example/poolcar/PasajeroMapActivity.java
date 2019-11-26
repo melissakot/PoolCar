@@ -159,7 +159,7 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
          * environment we recommend using a secure mechanism to manage API keys.
          */
         if (!Places.isInitialized()) {
-            Places.initialize(getApplicationContext(), "AIzaSyAa66qreGPji58op42F7_ufelBteQxWarg");//"AIzaSyBIRJQawafcAqAjJyDFfgt_Nja6LOCBZEY");
+            Places.initialize(getApplicationContext(), "@string/google_maps_key"); //"AIzaSyAa66qreGPji58op42F7_ufelBteQxWarg");//"AIzaSyBIRJQawafcAqAjJyDFfgt_Nja6LOCBZEY");
             // Create a new Places client instance.
             PlacesClient placesClient = Places.createClient(this);
         }
