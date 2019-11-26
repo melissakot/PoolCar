@@ -66,6 +66,8 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
 
     private LatLng destinationLatLng;
 
+    private float rideDistance;
+
     private Marker pickupMarker;
 
     private DatabaseReference assignedCustomerPickupLocationRef;
@@ -105,7 +107,7 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
             @Override
             public void onClick(View v) {
                 switch (status) {
-                    case 1: //Going to pickup Customer
+                    case 1: //pickup Customer and then go to destination
                         status = 2;
                         erasePolylines();
                         if (destinationLatLng.latitude != 0.0 && destinationLatLng.longitude != 0.0){
@@ -114,7 +116,10 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
                         mRideStatus.setText("Viaje Completado");
 
                         break;
-                    case 2: //Going to destination
+                    case 2: //finish travel
+                        float ridePrice;
+                        ridePrice = Float.valueOf(rideDistance) * 5; //Precio igual a kilometros *5
+                        Toast.makeText(getApplicationContext(), "el costo es: " + String.valueOf(ridePrice), Toast.LENGTH_LONG).show();
                         endRide();
                         break;
                 }
@@ -303,7 +308,10 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
                         //Do some stuff if you want to
                     }
                 });
+
         customerId = "";
+        rideDistance = 0;
+
         if (pickupMarker != null) {
             pickupMarker.remove();
         }
@@ -344,6 +352,10 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
     @Override
     public void onLocationChanged(Location location) {
         if (getApplicationContext() != null && !isLoggingOut) {
+
+            if (!customerId.equals("")){
+                rideDistance += mLastLocation.distanceTo(location)/1000;
+            }
 
             mLastLocation = location;
 
