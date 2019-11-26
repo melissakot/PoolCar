@@ -16,6 +16,11 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.directions.route.AbstractRouting;
+import com.directions.route.Route;
+import com.directions.route.RouteException;
+import com.directions.route.Routing;
+import com.directions.route.RoutingListener;
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
 import com.google.android.gms.common.ConnectionResult;
@@ -30,6 +35,8 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -37,10 +44,11 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class ConductorMapAcrivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, com.google.android.gms.location.LocationListener {
+public class ConductorMapAcrivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, com.google.android.gms.location.LocationListener, RoutingListener {
 
     GoogleApiClient mGoogleApiClient;
     Location mLastLocation;
@@ -48,7 +56,7 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
     private GoogleMap mMap;
     private Button mLogout;
 
-    private  Boolean isLoggingOut = false;
+    private Boolean isLoggingOut = false;
 
     private String customerId = "";
     private Marker pickupMarker;
@@ -70,14 +78,16 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
 
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(ConductorMapAcrivity.this, new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_REQUEST_CODE);
+            ActivityCompat.requestPermissions(ConductorMapAcrivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_REQUEST_CODE);
 //            return;
-        }else{
+        } else {
             mapFragment.getMapAsync(this);
         }
 
+        polylines = new ArrayList<>();
+
         mCustomerInfo = (LinearLayout) findViewById(R.id.pasajeroInfo);
-        mCustomerName  = (TextView) findViewById(R.id.pasajeroName);
+        mCustomerName = (TextView) findViewById(R.id.pasajeroName);
         mCustomerPhone = (TextView) findViewById(R.id.pasajeroPhone);
         mCustomerDestination = (TextView) findViewById(R.id.pasajeroDestination);
 
@@ -92,7 +102,7 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
 
                 mGoogleApiClient.disconnect();
                 mMap.stopAnimation();
-                 
+
                 FirebaseAuth.getInstance().signOut();
                 Intent intent = new Intent(ConductorMapAcrivity.this, MainActivity.class);
                 startActivity(intent);
@@ -108,44 +118,47 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
         String driverId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 //        DatabaseReference assignedCustomerRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Drivers").child(driverId);
         DatabaseReference assignedCustomerRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Drivers").child(driverId).child("CustomerRequest").child("CustomerRideId");
-       assignedCustomerRef.addValueEventListener(new ValueEventListener() {
-           @Override
-           public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-               if (dataSnapshot.exists()) {
-                   Map<String, Object> map;
-                   customerId = dataSnapshot.getValue().toString();
-                   if(customerId.equals("")) {
-                      map  = (Map<String, Object>) dataSnapshot.getValue();
-                       if (map.get("CustomerRideId")!= null){
-                           customerId = map.get("CustomerRideId").toString();
-                       }
-                   };
-                   if (customerId != "") {
-                       getAssignedCustomerPickupLocation();
-                       getAssignedCustomerDestination();
-                       getAssignedCustomerInfo();
-                   }else{
-                       customerId = "";
-                        if (pickupMarker != null){
+        assignedCustomerRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    Map<String, Object> map;
+                    customerId = dataSnapshot.getValue().toString();
+                    if (customerId.equals("")) {
+                        map = (Map<String, Object>) dataSnapshot.getValue();
+                        if (map.get("CustomerRideId") != null) {
+                            customerId = map.get("CustomerRideId").toString();
+                        }
+                    }
+                    if (customerId != "") {
+                        getAssignedCustomerPickupLocation();
+                        getAssignedCustomerDestination();
+                        getAssignedCustomerInfo();
+                    }
+                } else {
+                     else {
+                        customerId = "";
+                        erasePolylines();
+                        if (pickupMarker != null) {
                             pickupMarker.remove();
                         }
-                        if (assignedCustomerPickupLocationRefListener != null){
+                        if (assignedCustomerPickupLocationRefListener != null) {
                             assignedCustomerPickupLocationRef.removeEventListener(assignedCustomerPickupLocationRefListener);
 
                         }
-                       mCustomerInfo.setVisibility(View.GONE);
-                       mCustomerName.setText("");
-                       mCustomerPhone.setText("");
-                       mCustomerDestination.setText("");
-                   }
-               }
-           }
+                        mCustomerInfo.setVisibility(View.GONE);
+                        mCustomerName.setText("");
+                        mCustomerPhone.setText("");
+                        mCustomerDestination.setText("");
+                    }
+                }
+            }
 
-           @Override
-           public void onCancelled(@NonNull DatabaseError databaseError) {
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
 
-           }
-       });
+            }
+        });
     }
 
     private void getAssignedCustomerDestination() {
@@ -155,11 +168,11 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
-                    Map<String, Object> map = (Map<String,Object>) dataSnapshot.getValue();
-                    if (map.get("CustomerRideId")!= null && map.get("CustomerDestination")!= null) {
+                    Map<String, Object> map = (Map<String, Object>) dataSnapshot.getValue();
+                    if (map.get("CustomerRideId") != null && map.get("CustomerDestination") != null) {
                         String mDestination = map.get("CustomerDestination").toString();
                         mCustomerDestination.setText("Destino: " + mDestination);
-                    }else{
+                    } else {
                         mCustomerDestination.setText("Destino: --");
                     }
                 }
@@ -178,12 +191,12 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
         mCustomerDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists() && dataSnapshot.getChildrenCount()>0){
+                if (dataSnapshot.exists() && dataSnapshot.getChildrenCount() > 0) {
                     Map<String, Object> map = (Map<String, Object>) dataSnapshot.getValue();
-                    if (map.get("nombre")!=null){
+                    if (map.get("nombre") != null) {
                         mCustomerName.setText(map.get("nombre").toString());
                     }
-                    if (map.get("telefono")!=null){
+                    if (map.get("telefono") != null) {
                         mCustomerPhone.setText(map.get("telefono").toString());
                     }
                 }
@@ -201,9 +214,8 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
         assignedCustomerPickupLocationRefListener = assignedCustomerPickupLocationRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()) {
+                if (dataSnapshot.exists() && !customerId.equals("")) {
                     List<Object> map = (List<Object>) dataSnapshot.getValue();
-//                    Map<String, Object> map = (Map<String,Object>) dataSnapshot.getValue();
                     double locationLat = 0;
                     double locationLng = 0;
                     if (map.get(0) != null) {
@@ -213,8 +225,9 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
                     if (map.get(1) != null) {
                         locationLng = Double.parseDouble(map.get(1).toString());
                     }
-                    LatLng driverLatLng = new LatLng(locationLat, locationLng);
-                    pickupMarker = mMap.addMarker(new MarkerOptions().position(driverLatLng).title("pickup location"));
+                    LatLng pickupLatLng = new LatLng(locationLat, locationLng);
+                    pickupMarker = mMap.addMarker(new MarkerOptions().position(pickupLatLng).title("pickup location"));
+                    getRouteToMarker(pickupLatLng);
 
                 }
             }
@@ -227,6 +240,16 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
 
     }
 
+    private void getRouteToMarker(LatLng pickupLatLng) {
+        Routing routing = new Routing.Builder()
+                .travelMode(AbstractRouting.TravelMode.DRIVING)
+                .withListener(this)
+                .alternativeRoutes(false)
+                .waypoints(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude()), pickupLatLng)
+                .build();
+        routing.execute();
+    }
+
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -234,7 +257,7 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
 
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(ConductorMapAcrivity.this, new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_REQUEST_CODE);
+            ActivityCompat.requestPermissions(ConductorMapAcrivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_REQUEST_CODE);
 //            return;
         }
 
@@ -253,7 +276,7 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
 
     @Override
     public void onLocationChanged(Location location) {
-        if (getApplicationContext()!= null && !isLoggingOut) {
+        if (getApplicationContext() != null && !isLoggingOut) {
 
             mLastLocation = location;
 
@@ -268,12 +291,12 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
             GeoFire geoFireAvailable = new GeoFire(refAvailable);
             GeoFire geoFireWorking = new GeoFire(refWorking);
 
-            GeoLocation loc =  new GeoLocation(location.getLatitude(), location.getLongitude());
+            GeoLocation loc = new GeoLocation(location.getLatitude(), location.getLongitude());
 
-            switch(customerId) {
-                case"":
+            switch (customerId) {
+                case "":
                     geoFireWorking.removeLocation(userId, new
-                            GeoFire.CompletionListener(){
+                            GeoFire.CompletionListener() {
                                 @Override
                                 public void onComplete(String key, DatabaseError error) {
                                     Boolean a = false;
@@ -282,18 +305,18 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
                             });
 //                    GeoLocation loc =  new GeoLocation(location.getLatitude(), location.getLongitude());
                     geoFireAvailable.setLocation(userId, new GeoLocation(location.getLatitude(), location.getLongitude()), new
-                            GeoFire.CompletionListener(){
+                            GeoFire.CompletionListener() {
                                 @Override
                                 public void onComplete(String key, DatabaseError error) {
                                     Boolean a = false;
                                     //Do some stuff if you want to
                                 }
                             });
-                break;
+                    break;
 
                 default:
                     geoFireAvailable.removeLocation(userId, new
-                            GeoFire.CompletionListener(){
+                            GeoFire.CompletionListener() {
                                 @Override
                                 public void onComplete(String key, DatabaseError error) {
                                     Boolean a = false;
@@ -301,7 +324,7 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
                                 }
                             });
                     geoFireWorking.setLocation(userId, new GeoLocation(location.getLatitude(), location.getLongitude()), new
-                            GeoFire.CompletionListener(){
+                            GeoFire.CompletionListener() {
                                 @Override
                                 public void onComplete(String key, DatabaseError error) {
                                     Boolean a = false;
@@ -311,7 +334,7 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
                     break;
             }
 
-    }
+        }
     }
 
     @Override
@@ -324,7 +347,7 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
 
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(ConductorMapAcrivity.this, new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_REQUEST_CODE);
+            ActivityCompat.requestPermissions(ConductorMapAcrivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_REQUEST_CODE);
 //            return;
         }
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
@@ -341,14 +364,14 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
     }
 
 
-    private void disconnectDriver(){
+    private void disconnectDriver() {
         //Comentado por Mati
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("DriversAvailable");
 
         GeoFire geoFire = new GeoFire(ref);
         geoFire.removeLocation(userId, new
-                GeoFire.CompletionListener(){
+                GeoFire.CompletionListener() {
                     @Override
                     public void onComplete(String key, DatabaseError error) {
                         Boolean a = false;
@@ -365,15 +388,16 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
     }
 
     final int LOCATION_REQUEST_CODE = 1;
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
-        switch (requestCode){
+        switch (requestCode) {
             case LOCATION_REQUEST_CODE: {
-                if (grantResults.length >0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     mapFragment.getMapAsync(this);
-                }else{
+                } else {
                     Toast.makeText(getApplicationContext(), "Brinde el permiso necesario", Toast.LENGTH_LONG).show();
                 }
                 break;
@@ -391,5 +415,60 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
 
         }
 
+    }
+
+    private List<Polyline> polylines;
+    private static final int[] COLORS = new int[]{R.color.primary_dark_material_light};
+
+    @Override
+    public void onRoutingFailure(RouteException e) {
+        if (e != null) {
+            Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        } else {
+            Toast.makeText(this, "Algo salio mal, Pruebe nuevamente", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onRoutingStart() {
+
+    }
+
+    @Override
+    public void onRoutingSuccess(ArrayList<Route> route, int shortestRouteIndex) {
+        if (polylines.size() > 0) {
+            for (Polyline poly : polylines) {
+                poly.remove();
+            }
+        }
+
+        polylines = new ArrayList<>();
+        //add route(s) to the map.
+        for (int i = 0; i < route.size(); i++) {
+
+            //In case of more than 5 alternative routes
+            int colorIndex = i % COLORS.length;
+
+            PolylineOptions polyOptions = new PolylineOptions();
+            polyOptions.color(getResources().getColor(COLORS[colorIndex]));
+            polyOptions.width(10 + i * 3);
+            polyOptions.addAll(route.get(i).getPoints());
+            Polyline polyline = mMap.addPolyline(polyOptions);
+            polylines.add(polyline);
+
+            Toast.makeText(getApplicationContext(), "Route " + (i + 1) + ": distance - " + route.get(i).getDistanceValue() + ": duration - " + route.get(i).getDurationValue(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onRoutingCancelled() {
+
+    }
+
+    private void erasePolylines() {
+        for (Polyline line : polylines) {
+            line.remove();
+        }
+        polylines.clear();
     }
 }
