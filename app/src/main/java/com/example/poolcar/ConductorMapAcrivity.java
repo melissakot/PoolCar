@@ -110,9 +110,9 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
                     case 1: //pickup Customer and then go to destination
                         status = 2;
                         erasePolylines();
-                        if (destinationLatLng.latitude != 0.0 && destinationLatLng.longitude != 0.0){
-                            getRouteToMarker(destinationLatLng);
-                        }
+//                        if (destinationLatLng.latitude != 0.0 && destinationLatLng.longitude != 0.0){
+//                            getRouteToMarker(destinationLatLng);
+//                        }
                         mRideStatus.setText("Viaje Completado");
 
                         break;
