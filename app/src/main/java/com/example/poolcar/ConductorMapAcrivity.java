@@ -77,6 +77,8 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
 
     private LinearLayout mCustomerInfo;
 
+    private LatLng pickupLatLng;
+
     private TextView mCustomerName, mCustomerPhone, mCustomerDestination;
 
     @Override
@@ -119,7 +121,7 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
                     case 2: //finish travel
                         float ridePrice;
                         ridePrice = Float.valueOf(rideDistance) * 5; //Precio igual a kilometros *5
-                        Toast.makeText(getApplicationContext(), "el costo es: " + String.valueOf(ridePrice), Toast.LENGTH_LONG).show();
+                        Toast.makeText(getApplicationContext(), "el Precio del viaje es: " + String.valueOf(ridePrice), Toast.LENGTH_LONG).show();
                         endRide();
                         break;
                 }
@@ -265,7 +267,7 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
                     if (map.get(1) != null) {
                         locationLng = Double.parseDouble(map.get(1).toString());
                     }
-                    LatLng pickupLatLng = new LatLng(locationLat, locationLng);
+                    pickupLatLng = new LatLng(locationLat, locationLng);
                     pickupMarker = mMap.addMarker(new MarkerOptions().position(pickupLatLng).title("pickup location"));
                     getRouteToMarker(pickupLatLng);
 
@@ -293,10 +295,12 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
     private void endRide() {
 
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("CustomerRequest");//("pedido del pasajero");
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("CustomerRequest");
         GeoFire geoFire = new GeoFire(ref);
 
         erasePolylines();
+        pickupLatLng = null;
+
         mRideStatus.setText("Pasajero recogido");
 
         DatabaseReference driverRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Drivers").child(userId).child("CustomerRequest");
@@ -361,8 +365,13 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
 
             mLastLocation = location;
 
-            LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+            LatLng latLng;
 
+            if (pickupLatLng != null && pickupLatLng.longitude != 0.0 && pickupLatLng.latitude != 0.0){
+                latLng = pickupLatLng;
+            }else {
+                latLng = new LatLng(location.getLatitude(), location.getLongitude());
+            }
             mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
             mMap.animateCamera(CameraUpdateFactory.zoomTo(16));
 
