@@ -27,6 +27,9 @@ import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
+import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -36,10 +39,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.libraries.places.api.Places;
-import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
-import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -158,35 +159,63 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
          * Initialize Places. For simplicity, the API key is hard-coded. In a production
          * environment we recommend using a secure mechanism to manage API keys.
          */
-        if (!Places.isInitialized()) {
-            Places.initialize(getApplicationContext(), "AIzaSyBIRJQawafcAqAjJyDFfgt_Nja6LOCBZEY"); //"AIzaSyAa66qreGPji58op42F7_ufelBteQxWarg");
-            // Create a new Places client instance.
-            PlacesClient placesClient = Places.createClient(this);
-        }
 
-        // Initialize the AutocompleteSupportFragment.
-        AutocompleteSupportFragment autocompleteFragment = (AutocompleteSupportFragment)
-                getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
+        PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment)
+                getFragmentManager().findFragmentById(R.id.autocomplete_fragment);
 
-        // Specify the types of place data to return.
-//        autocompleteFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME));
-
-        // Set up a PlaceSelectionListener to handle the response.
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(Place place) {
-                // TODO: Get info about the selected place.
                 destination = place.getName().toString();
                 destinationLatLng = place.getLatLng();
-//                Log.i(TAG, "Place: " + place.getName() + ", " + place.getId());
             }
 
             @Override
             public void onError(Status status) {
-                // TODO: Handle the error.
-//                Log.i("Error", "An error occurred: " + status);
+
             }
         });
+//        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+//            @Override
+//            public void onPlaceSelected(Place place) {
+//                // TODO: Get info about the selected place.
+//                destination = place.getName().toString();
+//                destinationLatLng = place.getLatLng();
+//            }
+//            @Override
+//            public void onError(Status status) {
+//                // TODO: Handle the error.
+//            }
+//        });
+//        if (!Places.isInitialized()) {
+//            Places.initialize(getApplicationContext(), "AIzaSyAa66qreGPji58op42F7_ufelBteQxWarg"); //"AIzaSyBIRJQawafcAqAjJyDFfgt_Nja6LOCBZEY");
+//            // Create a new Places client instance.
+//            PlacesClient placesClient = Places.createClient(this);
+//        }
+//
+//        // Initialize the AutocompleteSupportFragment.
+//        AutocompleteSupportFragment autocompleteFragment = (AutocompleteSupportFragment)
+//                getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
+//
+//        // Specify the types of place data to return.
+//        autocompleteFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME));
+//
+//        // Set up a PlaceSelectionListener to handle the response.
+//        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+//            @Override
+//            public void onPlaceSelected(Place place) {
+//                // TODO: Get info about the selected place.
+//                destination = place.getName().toString();
+//                destinationLatLng = place.getLatLng();
+////                Log.i(TAG, "Place: " + place.getName() + ", " + place.getId());
+//            }
+//
+//            @Override
+//            public void onError(Status status) {
+//                // TODO: Handle the error.
+////                Log.i("Error", "An error occurred: " + status);
+//            }
+//        });
 
     }
 
@@ -325,6 +354,7 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
 
     private DatabaseReference driveHasEndedRef;
     private ValueEventListener driveHasEndedRefListener;
+
     private void getHasRideEnded() {
 
 //        String driverId = FirebaseAuth.getInstance().getCurrentUser().getUid();
@@ -348,7 +378,7 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
         });
     }
 
-    private void endRide(){
+    private void endRide() {
 
         geoQuery.removeAllListeners();
 
@@ -381,7 +411,7 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
         if (pickupMarker != null) {
             pickupMarker.remove();
         }
-        if (mDriverMarker != null){
+        if (mDriverMarker != null) {
             mDriverMarker.remove();
         }
         mRequest.setText("Llamar al conductor");
