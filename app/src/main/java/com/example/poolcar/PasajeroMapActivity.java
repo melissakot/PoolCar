@@ -131,8 +131,6 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
                             GeoFire.CompletionListener() {
                                 @Override
                                 public void onComplete(String key, DatabaseError error) {
-//                                    Boolean a = false;
-                                    //Do some stuff if you want to
                                 }
                             });
 
@@ -178,13 +176,11 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
 //        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
 //            @Override
 //            public void onPlaceSelected(Place place) {
-//                // TODO: Get info about the selected place.
 //                destination = place.getName().toString();
 //                destinationLatLng = place.getLatLng();
 //            }
 //            @Override
 //            public void onError(Status status) {
-//                // TODO: Handle the error.
 //            }
 //        });
 //        if (!Places.isInitialized()) {
@@ -204,7 +200,6 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
 //        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
 //            @Override
 //            public void onPlaceSelected(Place place) {
-//                // TODO: Get info about the selected place.
 //                destination = place.getName().toString();
 //                destinationLatLng = place.getLatLng();
 ////                Log.i(TAG, "Place: " + place.getName() + ", " + place.getId());
@@ -212,7 +207,6 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
 //
 //            @Override
 //            public void onError(Status status) {
-//                // TODO: Handle the error.
 ////                Log.i("Error", "An error occurred: " + status);
 //            }
 //        });
