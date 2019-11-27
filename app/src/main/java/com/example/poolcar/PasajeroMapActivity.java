@@ -34,13 +34,14 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+//import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.libraries.places.api.Places;
-import com.google.android.libraries.places.api.net.PlacesClient;
-import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
+//import com.google.android.libraries.places.api.Places;
+//import com.google.android.libraries.places.api.net.PlacesClient;
+//import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
+import com.google.android.libraries.places.compat.Places;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -153,38 +154,35 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
             }
         });
 
-        /**
-         * Initialize Places. For simplicity, the API key is hard-coded. In a production
-         * environment we recommend using a secure mechanism to manage API keys.
-         */
-
-        PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment)
-                getFragmentManager().findFragmentById(R.id.autocomplete_fragment);
-
-        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
-            @Override
-            public void onPlaceSelected(Place place) {
-                destination = place.getName().toString();
-                destinationLatLng = place.getLatLng();
-            }
-
-            @Override
-            public void onError(Status status) {
-
-            }
-        });
+//        /**
+//         * Initialize Places. For simplicity, the API key is hard-coded. In a production
+//         * environment we recommend using a secure mechanism to manage API keys.
+//         */
+//        if (!Places.isInitialized()) {
+//            Places.initialize(getApplicationContext(), "AIzaSyBgjYiRuBCD0A2TX03T4kU_kZBb567gDWQ");
+//            // Create a new Places client instance.
+//            PlacesClient placesClient = Places.createClient(this);
+//        }
+//
+//        PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment)
+//                getFragmentManager().findFragmentById(R.id.autocomplete_fragment);
+//
 //        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
 //            @Override
 //            public void onPlaceSelected(Place place) {
 //                destination = place.getName().toString();
 //                destinationLatLng = place.getLatLng();
 //            }
+//
 //            @Override
 //            public void onError(Status status) {
+//                int a;
+//                a=0;
 //            }
 //        });
 //        if (!Places.isInitialized()) {
-//            Places.initialize(getApplicationContext(), "AIzaSyAa66qreGPji58op42F7_ufelBteQxWarg"); //"AIzaSyBIRJQawafcAqAjJyDFfgt_Nja6LOCBZEY");
+//            Places.initialize(getApplicationContext(), "AIzaSyBgjYiRuBCD0A2TX03T4kU_kZBb567gDWQ");
+//            "AIzaSyAa66qreGPji58op42F7_ufelBteQxWarg"); //"AIzaSyBIRJQawafcAqAjJyDFfgt_Nja6LOCBZEY");
 //            // Create a new Places client instance.
 //            PlacesClient placesClient = Places.createClient(this);
 //        }

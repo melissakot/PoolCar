@@ -32,17 +32,17 @@
             android:layout_gravity="right"
             android:text="User" />
 
-        <androidx.cardview.widget.CardView
-            android:layout_below="@+id/settings"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="20sp">
-            <fragment android:id="@+id/autocomplete_fragment"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:name="com.google.android.gms.location.places.ui.PlaceAutocompleteFragment"/>
-<!--                    "com.google.android.libraries.places.widget.AutocompleteSupportFragment"-->
-        </androidx.cardview.widget.CardView>
+<!--        <androidx.cardview.widget.CardView-->
+<!--            android:layout_below="@+id/settings"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_margin="20sp">-->
+<!--            <fragment android:id="@+id/autocomplete_fragment"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:name="com.google.android.gms.location.places.ui.PlaceAutocompleteFragment"/>-->
+<!--&lt;!&ndash;                    "com.google.android.libraries.places.widget.AutocompleteSupportFragment"&ndash;&gt;-->
+<!--        </androidx.cardview.widget.CardView>-->
     </RelativeLayout>
 
     <Button
