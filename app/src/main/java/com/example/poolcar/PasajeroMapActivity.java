@@ -252,6 +252,7 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
                     getDriverLocation();
                     getHasRideEnded();
 
+
                 }
 
             }
@@ -293,7 +294,7 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
     private ValueEventListener driverLocationRefListener;
 
     private void getDriverLocation() {
-        driverLocationRef = FirebaseDatabase.getInstance().getReference().child("DriversWorking").child(driverFoundID).child("1");
+        driverLocationRef = FirebaseDatabase.getInstance().getReference().child("DriversWorking").child(driverFoundID).child("l");
         driverLocationRefListener = driverLocationRef.addValueEventListener(new ValueEventListener() {
             //Se llama a esta funcion cada vez que la ubicacion cambia
             @Override
@@ -328,6 +329,7 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
                         mRequest.setText("Conductor Encontrado a: " + String.valueOf(distance) + " Mts");
                     } else {
                         mRequest.setText("El Conductor esta AQUI ");
+                        Toast.makeText(getApplicationContext(), "El conductor se encuentra AQUI", Toast.LENGTH_LONG).show();
                     }
 
                     mDriverMarker = mMap.addMarker(new MarkerOptions().position(driverLatLng).title("Tu conductor"));
@@ -338,6 +340,7 @@ public class PasajeroMapActivity extends FragmentActivity implements OnMapReadyC
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
+                Toast.makeText(getApplicationContext(), "Error en get Driver location", Toast.LENGTH_LONG).show();
 //                System.err.println("There was an error in getDriverLocation(): " + databaseError.getMessage().toString());
             }
         });

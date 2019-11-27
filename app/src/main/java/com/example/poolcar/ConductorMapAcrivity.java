@@ -170,6 +170,8 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
                         getAssignedCustomerPickupLocation();
                         getAssignedCustomerDestination();
                         getAssignedCustomerInfo();
+                    }else{
+//                        endRide();
                     }
 
                 } else {
@@ -279,13 +281,13 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
     }
 
     private void getRouteToMarker(LatLng pickupLatLng) {
-        Routing routing = new Routing.Builder()
-                .travelMode(AbstractRouting.TravelMode.DRIVING)
-                .withListener(this)
-                .alternativeRoutes(false)
-                .waypoints(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude()), pickupLatLng)
-                .build();
-        routing.execute();
+//        Routing routing = new Routing.Builder()
+//                .travelMode(AbstractRouting.TravelMode.DRIVING)
+//                .withListener(this)
+//                .alternativeRoutes(false)
+//                .waypoints(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude()), pickupLatLng)
+//                .build();
+//        routing.execute();
     }
 
     private void endRide() {
@@ -501,11 +503,11 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
 
     @Override
     public void onRoutingFailure(RouteException e) {
-        if (e != null) {
-            Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-        } else {
-            Toast.makeText(this, "Algo salio mal, Pruebe nuevamente", Toast.LENGTH_SHORT).show();
-        }
+//        if (e != null) {
+//            Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+//        } else {
+//            Toast.makeText(this, "Algo salio mal, Pruebe nuevamente", Toast.LENGTH_SHORT).show();
+//        }
     }
 
     @Override
@@ -515,28 +517,28 @@ public class ConductorMapAcrivity extends FragmentActivity implements OnMapReady
 
     @Override
     public void onRoutingSuccess(ArrayList<Route> route, int shortestRouteIndex) {
-        if (polylines.size() > 0) {
-            for (Polyline poly : polylines) {
-                poly.remove();
-            }
-        }
-
-        polylines = new ArrayList<>();
-        //add route(s) to the map.
-        for (int i = 0; i < route.size(); i++) {
-
-            //In case of more than 5 alternative routes
-            int colorIndex = i % COLORS.length;
-
-            PolylineOptions polyOptions = new PolylineOptions();
-            polyOptions.color(getResources().getColor(COLORS[colorIndex]));
-            polyOptions.width(10 + i * 3);
-            polyOptions.addAll(route.get(i).getPoints());
-            Polyline polyline = mMap.addPolyline(polyOptions);
-            polylines.add(polyline);
-
-            Toast.makeText(getApplicationContext(), "Route " + (i + 1) + ": distance - " + route.get(i).getDistanceValue() + ": duration - " + route.get(i).getDurationValue(), Toast.LENGTH_SHORT).show();
-        }
+//        if (polylines.size() > 0) {
+//            for (Polyline poly : polylines) {
+//                poly.remove();
+//            }
+//        }
+//
+//        polylines = new ArrayList<>();
+//        //add route(s) to the map.
+//        for (int i = 0; i < route.size(); i++) {
+//
+//            //In case of more than 5 alternative routes
+//            int colorIndex = i % COLORS.length;
+//
+//            PolylineOptions polyOptions = new PolylineOptions();
+//            polyOptions.color(getResources().getColor(COLORS[colorIndex]));
+//            polyOptions.width(10 + i * 3);
+//            polyOptions.addAll(route.get(i).getPoints());
+//            Polyline polyline = mMap.addPolyline(polyOptions);
+//            polylines.add(polyline);
+//
+//            Toast.makeText(getApplicationContext(), "Route " + (i + 1) + ": distance - " + route.get(i).getDistanceValue() + ": duration - " + route.get(i).getDurationValue(), Toast.LENGTH_SHORT).show();
+//        }
     }
 
     @Override
